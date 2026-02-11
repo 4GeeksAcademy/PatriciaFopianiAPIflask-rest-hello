@@ -40,6 +40,11 @@ def handle_hello():
     }
     return jsonify(response_body), 200
 
+
+# -------------------------------
+# PERSONAJES
+# -------------------------------
+
 @app.route('/personajes', methods=['GET'])
 def get_personajes():
     personajes = PersonajeSimpson.query.all()
@@ -147,30 +152,39 @@ def get_users():
 
 @app.route('/users/favorites', methods=['GET'])
 def get_user_favorites():
-    user_id = 1  # usuario actual (sin auth)
-    favoritos = FavoritoSimpson.query.filter_by(user_id=user_id).all()
-    return jsonify([f.serialize() for f in favoritos]), 200
+    user_id = 1
+
+    personajes = FavoritoPersonaje.query.filter_by(user_id=user_id).all()
+    lugares = FavoritoLugar.query.filter_by(user_id=user_id).all()
+
+    return jsonify({
+        "personajes_favoritos": [p.serialize() for p in personajes],
+        "lugares_favoritos": [l.serialize() for l in lugares]
+    }), 200
+
 
 @app.route('/favorite/location/<int:lugar_id>', methods=['POST'])
 def add_favorite_location(lugar_id):
     user_id = 1
-    nuevo = FavoritoSimpson(user_id=user_id, lugar_id=lugar_id)
+    nuevo = FavoritoLugar(user_id=user_id, lugar_id=lugar_id)
     db.session.add(nuevo)
     db.session.commit()
     return jsonify({"msg": "Lugar añadido a favoritos"}), 201
 
+
 @app.route('/favorite/personaje/<int:personaje_id>', methods=['POST'])
 def add_favorite_personaje(personaje_id):
     user_id = 1
-    nuevo = FavoritoSimpson(user_id=user_id, personaje_id=personaje_id)
+    nuevo = FavoritoPersonaje(user_id=user_id, personaje_id=personaje_id)
     db.session.add(nuevo)
     db.session.commit()
     return jsonify({"msg": "Personaje añadido a favoritos"}), 201
 
+
 @app.route('/favorite/location/<int:lugar_id>', methods=['DELETE'])
 def delete_favorite_location(lugar_id):
     user_id = 1
-    fav = FavoritoSimpson.query.filter_by(user_id=user_id, lugar_id=lugar_id).first()
+    fav = FavoritoLugar.query.filter_by(user_id=user_id, lugar_id=lugar_id).first()
     if fav is None:
         return jsonify({"msg": "Favorito no encontrado"}), 404
 
@@ -178,16 +192,18 @@ def delete_favorite_location(lugar_id):
     db.session.commit()
     return jsonify({"msg": "Lugar eliminado de favoritos"}), 200
 
+
 @app.route('/favorite/personaje/<int:personaje_id>', methods=['DELETE'])
 def delete_favorite_personaje(personaje_id):
     user_id = 1
-    fav = FavoritoSimpson.query.filter_by(user_id=user_id, personaje_id=personaje_id).first()
+    fav = FavoritoPersonaje.query.filter_by(user_id=user_id, personaje_id=personaje_id).first()
     if fav is None:
         return jsonify({"msg": "Favorito no encontrado"}), 404
 
     db.session.delete(fav)
     db.session.commit()
     return jsonify({"msg": "Personaje eliminado de favoritos"}), 200
+
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))

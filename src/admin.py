@@ -1,10 +1,13 @@
 import os
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from models import db, User, PersonajeSimpson, Lugar, FavoritoSimpson
+from models import db, User, PersonajeSimpson, Lugar, FavoritoPersonaje, FavoritoLugar
 
-class FavoritoAdmin(ModelView):
-    form_columns = ['usuario', 'personaje', 'lugar']
+class FavoritoPersonajeAdmin(ModelView):
+    form_columns = ['usuario', 'personaje']
+
+class FavoritoLugarAdmin(ModelView):
+    form_columns = ['usuario', 'lugar']
 
 def setup_admin(app):
     app.secret_key = os.environ.get('FLASK_APP_KEY', 'sample key')
@@ -14,4 +17,5 @@ def setup_admin(app):
     admin.add_view(ModelView(User, db.session))
     admin.add_view(ModelView(PersonajeSimpson, db.session))
     admin.add_view(ModelView(Lugar, db.session))
-    admin.add_view(FavoritoAdmin(FavoritoSimpson, db.session))
+    admin.add_view(FavoritoPersonajeAdmin(FavoritoPersonaje, db.session))
+    admin.add_view(FavoritoLugarAdmin(FavoritoLugar, db.session))

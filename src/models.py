@@ -12,7 +12,11 @@ class User(db.Model):
     password: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
 
-    favoritos: Mapped[list["FavoritoSimpson"]] = relationship(
+    personajes_favoritos: Mapped[list["FavoritoPersonaje"]] = relationship(
+        back_populates="usuario",
+        lazy=True
+    )
+    lugares_favoritos: Mapped[list["FavoritoLugar"]] = relationship(
         back_populates="usuario",
         lazy=True
     )
@@ -26,6 +30,7 @@ class User(db.Model):
             "email": self.email,
         }
 
+
 class PersonajeSimpson(db.Model):
     __tablename__ = "personaje_simpson"
 
@@ -35,7 +40,7 @@ class PersonajeSimpson(db.Model):
     ocupacion: Mapped[str] = mapped_column(String(120), nullable=True)
     frase_iconica: Mapped[str] = mapped_column(String(250), nullable=True)
 
-    favoritos: Mapped[list["FavoritoSimpson"]] = relationship(
+    favoritos: Mapped[list["FavoritoPersonaje"]] = relationship(
         back_populates="personaje",
         lazy=True
     )
@@ -52,6 +57,7 @@ class PersonajeSimpson(db.Model):
             "frase_iconica": self.frase_iconica,
         }
 
+
 class Lugar(db.Model):
     __tablename__ = "lugar"
 
@@ -61,7 +67,7 @@ class Lugar(db.Model):
     direccion: Mapped[str] = mapped_column(String(120), nullable=True)
     descripcion: Mapped[str] = mapped_column(String(250), nullable=True)
 
-    favoritos: Mapped[list["FavoritoSimpson"]] = relationship(
+    favoritos: Mapped[list["FavoritoLugar"]] = relationship(
         back_populates="lugar",
         lazy=True
     )
@@ -78,39 +84,38 @@ class Lugar(db.Model):
             "descripcion": self.descripcion,
         }
 
-class FavoritoSimpson(db.Model):
-    __tablename__ = "favorito_simpson"
+
+class FavoritoPersonaje(db.Model):
+    __tablename__ = "favorito_personaje"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
-    personaje_id: Mapped[int] = mapped_column(
-        ForeignKey("personaje_simpson.id"), nullable=True
-    )
-    lugar_id: Mapped[int] = mapped_column(
-        ForeignKey("lugar.id"), nullable=True
-    )
+    personaje_id: Mapped[int] = mapped_column(ForeignKey("personaje_simpson.id"), nullable=False)
 
-    usuario: Mapped["User"] = relationship(
-        back_populates="favoritos",
-        lazy=True
-    )
-    personaje: Mapped["PersonajeSimpson"] = relationship(
-        back_populates="favoritos",
-        lazy=True
-    )
-    lugar: Mapped["Lugar"] = relationship(
-        back_populates="favoritos",
-        lazy=True
-    )
-
-    def __repr__(self):
-        return f"<Favorito user={self.user_id} personaje={self.personaje_id} lugar={self.lugar_id}>"
+    usuario: Mapped["User"] = relationship(back_populates="personajes_favoritos")
+    personaje: Mapped["PersonajeSimpson"] = relationship(back_populates="favoritos")
 
     def serialize(self):
         return {
             "id": self.id,
             "user_id": self.user_id,
             "personaje_id": self.personaje_id,
+        }
+
+
+class FavoritoLugar(db.Model):
+    __tablename__ = "favorito_lugar"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    lugar_id: Mapped[int] = mapped_column(ForeignKey("lugar.id"), nullable=False)
+
+    usuario: Mapped["User"] = relationship(back_populates="lugares_favoritos")
+    lugar: Mapped["Lugar"] = relationship(back_populates="favoritos")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
             "lugar_id": self.lugar_id,
         }
