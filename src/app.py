@@ -40,11 +40,6 @@ def handle_hello():
     }
     return jsonify(response_body), 200
 
-
-# -------------------------------
-# PERSONAJES
-# -------------------------------
-
 @app.route('/personajes', methods=['GET'])
 def get_personajes():
     personajes = PersonajeSimpson.query.all()
